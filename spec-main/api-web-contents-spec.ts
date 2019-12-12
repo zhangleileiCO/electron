@@ -1820,12 +1820,33 @@ describe('webContents module', () => {
     it('cancels authentication when callback is called with no arguments', async () => {
       const w = new BrowserWindow({ show: false });
       w.webContents.on('login', (event, request, authInfo, cb) => {
-        event.preventDefault();
-        cb();
-      });
-      await w.loadURL(serverUrl);
-      const body = await w.webContents.executeJavaScript('document.documentElement.textContent');
-      expect(body).to.equal('401');
-    });
-  });
-});
+        event.preventDefault()
+        cb()
+      })
+      await w.loadURL(serverUrl)
+      const body = await w.webContents.executeJavaScript(`document.documentElement.textContent`)
+      expect(body).to.equal('401')
+    })
+  })
+
+  it('emits a cancelable event before creating a child webcontents', async () => {
+    const w = new BrowserWindow({
+      show: false,
+      webPreferences: {
+        sandbox: true
+      }
+    })
+    w.webContents.on('-will-add-new-contents' as any, (event: any, url: any) => {
+      expect(url).to.equal('about:blank')
+      event.preventDefault()
+    })
+    let wasCalled = false
+    w.webContents.on('new-window' as any, () => {
+      wasCalled = true
+    })
+    await w.loadURL('about:blank')
+    await w.webContents.executeJavaScript(`window.open('about:blank')`)
+    await new Promise((resolve) => { process.nextTick(resolve) })
+    expect(wasCalled).to.equal(false)
+  })
+})
