@@ -149,6 +149,12 @@ void TopLevelWindow::WillCloseWindow(bool* prevent_default) {
   }
 }
 
+void TopLevelWindow::OnWindowWillClose() {
+  // Must remove the browser views before closing window otherwise memory
+  // corruption would happen.
+  ResetBrowserViews();
+}
+
 void TopLevelWindow::OnWindowClosed() {
   // Invalidate weak ptrs before the Javascript object is destroyed,
   // there might be some delayed emit events which shouldn't be
@@ -165,7 +171,6 @@ void TopLevelWindow::OnWindowClosed() {
   Emit("closed");
 
   RemoveFromParentChildWindows();
-  TopLevelWindow::ResetBrowserViews();
 
   // Destroy the native class when window is closed.
   base::ThreadTaskRunnerHandle::Get()->PostTask(FROM_HERE, GetDestroyClosure());

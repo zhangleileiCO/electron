@@ -45,6 +45,9 @@ class NativeWindowObserver : public base::CheckedObserver {
   // Called when closed button is clicked.
   virtual void OnCloseButtonClicked(bool* prevent_default) {}
 
+  // Called when the window is going to be closed.
+  virtual void OnWindowWillClose() {}
+
   // Called when the window is closed.
   virtual void OnWindowClosed() {}
 

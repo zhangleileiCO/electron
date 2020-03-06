@@ -410,6 +410,9 @@ void NativeWindow::NotifyWindowCloseButtonClicked() {
   if (prevent_default)
     return;
 
+  for (NativeWindowObserver& observer : observers_)
+    observer.OnWindowWillClose();
+
   CloseImmediately();
 }
 

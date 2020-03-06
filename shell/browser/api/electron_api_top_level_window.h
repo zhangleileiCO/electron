@@ -52,6 +52,7 @@ class TopLevelWindow : public gin_helper::TrackableObject<TopLevelWindow>,
 
   // NativeWindowObserver:
   void WillCloseWindow(bool* prevent_default) override;
+  void OnWindowWillClose() override;
   void OnWindowClosed() override;
   void OnWindowEndSession() override;
   void OnWindowBlur() override;
