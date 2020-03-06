@@ -7,54 +7,71 @@ import { emittedOnce } from './events-helpers'
 import { ifit } from './spec-helpers'
 
 describe('spellchecker', () => {
-  let w: BrowserWindow
-
-  beforeEach(async () => {
-    w = new BrowserWindow({
-      show: false
+  describe('context menu', () => {
+    // Use a new session to avoid pollution from other tests.
+    const ses = session.fromPartition('spellcheck-contextmenu')
+    after(async () => {
+      await ses.clearStorageData()
+      ses.destroy()
     })
-    await w.loadFile(path.resolve(__dirname, './fixtures/chromium/spellchecker.html'))
-  })
 
-  afterEach(async () => {
-    await closeWindow(w)
-  })
+    // Ensure tests only run after dictionary is loaded.
+    let isDictLoaded = false
+    ses.once('spellcheck-dictionary-initialized', () => { isDictLoaded = true })
+    const ensureDictLoaded = async () => {
+      if (!isDictLoaded) { await emittedOnce(session.defaultSession, 'spellcheck-dictionary-initialized') }
+    }
 
-  // Spellchecker loads slow on ARM CI machines.
-  const waitTime = (process.arch === 'arm' || process.arch === 'arm64') ? 2000 : 500
-
-  ifit(process.platform !== 'win32')('should detect correctly spelled words as correct', async () => {
-    await w.webContents.executeJavaScript('document.body.querySelector("textarea").value = "Beautiful and lovely"')
-    await w.webContents.executeJavaScript('document.body.querySelector("textarea").focus()')
-    const contextMenuPromise = emittedOnce(w.webContents, 'context-menu')
-    // Wait for spellchecker to load
-    await new Promise(resolve => setTimeout(resolve, waitTime))
-    w.webContents.sendInputEvent({
-      type: 'mouseDown',
-      button: 'right',
-      x: 43,
-      y: 42
+    let w: BrowserWindow
+    beforeEach(async () => {
+      w = new BrowserWindow({
+        show: false,
+        webPreferences: { session: ses }
+      })
+      await w.loadFile(path.resolve(__dirname, './fixtures/chromium/spellchecker.html'))
+      await ensureDictLoaded()
     })
-    const contextMenuParams: Electron.ContextMenuParams = (await contextMenuPromise)[1]
-    expect(contextMenuParams.misspelledWord).to.eq('')
-    expect(contextMenuParams.dictionarySuggestions).to.have.lengthOf(0)
-  })
 
-  ifit(process.platform !== 'win32')('should detect incorrectly spelled words as incorrect', async () => {
-    await w.webContents.executeJavaScript('document.body.querySelector("textarea").value = "Beautifulllll asd asd"')
-    await w.webContents.executeJavaScript('document.body.querySelector("textarea").focus()')
-    const contextMenuPromise = emittedOnce(w.webContents, 'context-menu')
-    // Wait for spellchecker to load
-    await new Promise(resolve => setTimeout(resolve, waitTime))
-    w.webContents.sendInputEvent({
-      type: 'mouseDown',
-      button: 'right',
-      x: 43,
-      y: 42
+    afterEach(async () => {
+      await closeWindow(w)
     })
-    const contextMenuParams: Electron.ContextMenuParams = (await contextMenuPromise)[1]
-    expect(contextMenuParams.misspelledWord).to.eq('Beautifulllll')
-    expect(contextMenuParams.dictionarySuggestions).to.have.length.of.at.least(1)
+
+    // Context menu loads slow on ARM CI machines.
+    const waitTime = (process.arch === 'arm' || process.arch === 'arm64') ? 5000 : 500
+
+    ifit(process.platform !== 'win32')('should detect correctly spelled words as correct', async () => {
+      await w.webContents.executeJavaScript('document.body.querySelector("textarea").value = "Beautiful and lovely"')
+      await w.webContents.executeJavaScript('document.body.querySelector("textarea").focus()')
+      const contextMenuPromise = emittedOnce(w.webContents, 'context-menu')
+      // Wait for context menu to show.
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+      w.webContents.sendInputEvent({
+        type: 'mouseDown',
+        button: 'right',
+        x: 43,
+        y: 42
+      })
+      const contextMenuParams: Electron.ContextMenuParams = (await contextMenuPromise)[1]
+      expect(contextMenuParams.misspelledWord).to.eq('')
+      expect(contextMenuParams.dictionarySuggestions).to.have.lengthOf(0)
+    })
+
+    ifit(process.platform !== 'win32')('should detect incorrectly spelled words as incorrect', async () => {
+      await w.webContents.executeJavaScript('document.body.querySelector("textarea").value = "Beautifulllll asd asd"')
+      await w.webContents.executeJavaScript('document.body.querySelector("textarea").focus()')
+      const contextMenuPromise = emittedOnce(w.webContents, 'context-menu')
+      // Wait for context menu to show.
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+      w.webContents.sendInputEvent({
+        type: 'mouseDown',
+        button: 'right',
+        x: 43,
+        y: 42
+      })
+      const contextMenuParams: Electron.ContextMenuParams = (await contextMenuPromise)[1]
+      expect(contextMenuParams.misspelledWord).to.eq('Beautifulllll')
+      expect(contextMenuParams.dictionarySuggestions).to.have.length.of.at.least(1)
+    })
   })
 
   describe('custom dictionary word list API', () => {
