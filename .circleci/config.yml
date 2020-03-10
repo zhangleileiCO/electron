@@ -120,7 +120,7 @@ env-arm: &env-arm
   TARGET_ARCH: arm
 
 env-arm64: &env-arm64
-  GN_EXTRA_ARGS: 'target_cpu = "arm64" fatal_linker_warnings = false enable_linux_installer = false'
+  GN_EXTRA_ARGS: 'target_cpu = "arm64" fatal_linker_warnings = false enable_linux_installer = false is_asan = true'
   MKSNAPSHOT_TOOLCHAIN: //build/toolchain/linux:clang_arm64
   BUILD_NATIVE_MKSNAPSHOT: 1
   TARGET_ARCH: arm64
