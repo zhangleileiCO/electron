@@ -605,6 +605,19 @@ describe('webContents module', () => {
       protocol.unregisterProtocol(zoomScheme, (error) => done(error));
     });
 
+    it('throws on an invalid zoomFactor', async () => {
+      const win = new BrowserWindow({ show: false });
+      await win.loadURL('about:blank');
+
+      expect(() => {
+        win.webContents.setZoomFactor(0.0);
+      }).to.throw(/'zoomFactor' must be a double greater than 0.0/);
+
+      expect(() => {
+        win.webContents.setZoomFactor(-2.0);
+      }).to.throw(/'zoomFactor' must be a double greater than 0.0/);
+    });
+
     // TODO(codebytere): remove in Electron v8.0.0
     it('can set the correct zoom level (functions)', async () => {
       try {
