@@ -993,19 +993,31 @@ describe('chromium features', () => {
     })
 
     it('opens when loading a pdf resource as top level navigation', async () => {
+      console.log('create')
       const w = new BrowserWindow({ show: false })
+      console.log('load')
       w.loadURL(pdfSource)
+      console.log('emitted')
       const [, contents] = await emittedOnce(app, 'web-contents-created')
+      console.log('equal')
       expect(contents.getURL()).to.equal('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html')
+      console.log('finish')
       await emittedOnce(contents, 'did-finish-load')
+      console.log('end')
     })
 
     it('opens when loading a pdf resource in a iframe', async () => {
+      console.log('create')
       const w = new BrowserWindow({ show: false })
+      console.log('load')
       w.loadFile(path.join(__dirname, 'fixtures', 'pages', 'pdf-in-iframe.html'))
+      console.log('emitted')
       const [, contents] = await emittedOnce(app, 'web-contents-created')
+      console.log('equal')
       expect(contents.getURL()).to.equal('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html')
+      console.log('finish')
       await emittedOnce(contents, 'did-finish-load')
+      console.log('end')
     })
   })
 
