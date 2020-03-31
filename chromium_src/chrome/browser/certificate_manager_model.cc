@@ -69,7 +69,7 @@ net::NSSCertDatabase* GetNSSCertDatabaseForResourceContext(
 
 // static
 void CertificateManagerModel::Create(content::BrowserContext* browser_context,
-                                     const CreationCallback& callback) {
+                                     CreationCallback callback) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   base::PostTask(
       FROM_HERE, {BrowserThread::IO},

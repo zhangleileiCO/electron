@@ -24,14 +24,14 @@ class ResourceContext;
 // manager dialog, and processes changes from the view.
 class CertificateManagerModel {
  public:
-  typedef base::Callback<void(std::unique_ptr<CertificateManagerModel>)>
-      CreationCallback;
+  using CreationCallback =
+      base::OnceCallback<void(std::unique_ptr<CertificateManagerModel>)>;
 
   // Creates a CertificateManagerModel. The model will be passed to the callback
   // when it is ready. The caller must ensure the model does not outlive the
   // |browser_context|.
   static void Create(content::BrowserContext* browser_context,
-                     const CreationCallback& callback);
+                     CreationCallback callback);
 
   ~CertificateManagerModel();
 
